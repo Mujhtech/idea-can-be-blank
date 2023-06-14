@@ -1,3 +1,113 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.home-container {
+  max-width: 640px;
+}
+
+footer {
+  height: 60px;
+}
+
+header {
+  @apply flex flex-col items-center justify-center bg-prosperity;
+  height: 60px;
+  padding: 0 0 0 40px;
+  position: fixed;
+  left: 50%;
+  width: 100%;
+  max-width: 640px;
+  top: 0;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  z-index: 99;
+}
+
+input,
+textarea {
+  outline: none;
+  width: 100%;
+  border: 1px solid #e7e7e7;
+  border-radius: 5px;
+  padding: 0.9375em 1.25rem;
+  height: 40px;
+  color: #55586f;
+  background-color: #ffffff;
+  backdrop-filter: blur(4px);
+}
+
+textarea {
+  height: 100px !important;
+}
+
+main {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  position: relative;
+  overflow-x: hidden !important;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.footer-container {
+  @apply bg-gypsum w-full h-full items-center justify-evenly flex flex-row my-0 mx-auto text-black;
+  max-width: 640px;
+  z-index: 99;
+}
+
+.footer-container .add-button {
+  @apply bg-white bg-opacity-40 rounded-full;
+  height: 60px;
+  width: 60px;
+}
+
+html {
+  background-color: #fefefe;
+  box-sizing: border-box;
+  font-family: "Roboto", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+.container {
+  margin: 50px auto 0;
+  width: 700px;
+}
+
+.u-float-right {
+  float: right;
+}
+
+.u-flex-center {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.subtle {
+  color: #888;
+  font-size: 12px;
+}
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: "JetBrains Mono", monospace;
+  }
+}
