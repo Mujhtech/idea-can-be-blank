@@ -15,6 +15,7 @@ import { ALFAJORES_ACCOUNT_PK } from "@/utils/constant";
 import BigNumber from "bignumber.js";
 import WebBlsBlindingClient from "@/utils/bls-binding-client";
 import { E164_REGEX } from "@/utils/validator";
+import GiveawayCard from "@/components/GiveawayCard";
 
 export default function Home() {
   let [componentInitialized, setComponentInitialized] = useState(false);
@@ -237,9 +238,16 @@ export default function Home() {
   }
 
   return (
-    <div>
-      <div className="h1">
-        There you go... a canvas for your next Celo project!
+    <div className="flex flex-1 overflow-y-auto">
+      <div className="flex flex-col space-y-2 mt-10">
+        <GiveawayCard />
+        <GiveawayCard />
+        <GiveawayCard />
+        <GiveawayCard />
+        <GiveawayCard />
+        <GiveawayCard />
+        <GiveawayCard />
+        <GiveawayCard />
       </div>
     </div>
   );
