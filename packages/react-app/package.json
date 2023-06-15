@@ -17,6 +17,7 @@
         "@heroicons/react": "^2.0.18",
         "blind-threshold-bls": "https://github.com/celo-org/blind-threshold-bls-wasm#3d1013a",
         "ethers": "^5.7.2",
+        "bignumber.js": "^9.0.2",
         "next": "^13.4.2",
         "react": "18.2.0",
         "react-dom": "18.2.0",
@@ -37,6 +38,8 @@
         "typescript": "^5.0.4"
     },
     "browser": {
+        "@celo/poprf": false,
+        "source-map-support": false,
         "net": false
     }
 }
