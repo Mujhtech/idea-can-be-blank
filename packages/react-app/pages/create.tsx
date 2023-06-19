@@ -137,8 +137,10 @@ export default function Home() {
             onChange={(e) => setExpiredIn(e.target.value)}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-celo-green focus:ring-celo-green sm:text-sm h-[40px]"
           >
-            {expires.map((expire) => (
-              <option value={expire.value}>{expire.label}</option>
+            {expires.map((expire, index: number) => (
+              <option key={index} value={expire.value}>
+                {expire.label}
+              </option>
             ))}
           </select>
         </div>

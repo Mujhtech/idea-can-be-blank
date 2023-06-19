@@ -275,8 +275,8 @@ export default function Home() {
           </div>
           <div className="text-sm mt-10">List of joined users</div>
           {giveaway.joinedUsers.length > 0 ? (
-            giveaway.joinedUsers.map((data) => (
-              <div>
+            giveaway.joinedUsers.map((data, index: number) => (
+              <div key={index}>
                 <Jazzicon diameter={25} seed={jsNumberForAddress(data)} />
                 <span>
                   {data.slice(0, 6)}...
