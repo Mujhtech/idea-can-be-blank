@@ -11,7 +11,7 @@ const Layout: FC<Props> = ({ children }) => {
       <div className="bg-gray-100 h-full">
         <div className="bg-white flex min-h-screen my-0 mx-auto overflow-x-hidden relative shadow-xl shadow-gray-300 home-container">
           <Header />
-          <div className="py-16 max-w-7xl mx-auto space-y-8 sm:px-6 lg:px-8">
+          <div className="py-16 w-full space-y-8 sm:px-6 lg:px-8">
             {children}
           </div>
           <Footer />

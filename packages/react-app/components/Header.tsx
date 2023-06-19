@@ -32,7 +32,7 @@ export default function Header() {
             </span>
           </a>
         ) : (
-          <h4>NexoStudio</h4>
+          <h4>Abeg</h4>
         )}
         {componentInitialized && address ? (
           <button

@@ -1,61 +1,59 @@
-import {
-  AuthSigner,
-  getServiceContext,
-  OdisContextName,
-} from "@celo/identity/lib/odis/query";
+import { useCountdownTimer } from "@/hooks/useCountdownTimer";
+import { IGiveaway } from "@/interface/giveaway";
+import WebBlsBlindingClient from "@/utils/bls-binding-client";
+import { ALFAJORES_ACCOUNT_PK } from "@/utils/constant";
+import { getGiveaway } from "@/utils/giveaway";
+import { E164_REGEX } from "@/utils/validator";
+import { ContractKit, newKit } from "@celo/contractkit";
 import { FederatedAttestationsWrapper } from "@celo/contractkit/lib/wrappers/FederatedAttestations";
 import { OdisPaymentsWrapper } from "@celo/contractkit/lib/wrappers/OdisPayments";
-import { ContractKit, newKit } from "@celo/contractkit";
-import { useCelo } from "@celo/react-celo";
-import { useEffect, useState } from "react";
-import { IdentifierPrefix } from "@celo/identity/lib/odis/identifier";
-import { Account } from "web3-core";
 import { OdisUtils } from "@celo/identity";
-import { ALFAJORES_ACCOUNT_PK } from "@/utils/constant";
+import { IdentifierPrefix } from "@celo/identity/lib/odis/identifier";
+import {
+  AuthSigner,
+  OdisContextName,
+  getServiceContext,
+} from "@celo/identity/lib/odis/query";
+import { useCelo } from "@celo/react-celo";
 import BigNumber from "bignumber.js";
-import WebBlsBlindingClient from "@/utils/bls-binding-client";
-import { E164_REGEX } from "@/utils/validator";
-import GiveawayCard from "@/components/GiveawayCard";
-import { IGiveaway } from "@/interface/giveaway";
 import { useRouter } from "next/router";
-import { getAllGiveaway } from "@/utils/giveaway";
+import { useEffect, useState } from "react";
+import Jazzicon, { jsNumberForAddress } from "react-jazzicon";
+import { Account } from "web3-core";
 
 export default function Home() {
   let [componentInitialized, setComponentInitialized] = useState(false);
   const { initialised, kit, connect, address, destroy, network } = useCelo();
   const [giveaways, setGiveaways] = useState<IGiveaway[] | null>(null);
 
-  const router = useRouter();
-
   const DEK_PRIVATE_KEY = process.env.NEXT_PUBLIC_DEK_PRIVATE_KEY;
   let issuerKit: ContractKit,
     issuer: Account,
     federatedAttestationsContract: FederatedAttestationsWrapper,
     odisPaymentContract: OdisPaymentsWrapper;
+  const router = useRouter();
+  const { id } = router.query;
+  const [giveaway, setGiveaway] = useState<IGiveaway | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const [isRegisterNumberModalOpen, setIsRegisterNumberModalOpen] =
-    useState(false);
-  const [isSendToNumberModalOpen, setIsSendToNumberModalOpen] = useState(false);
-  const [isDeregisterNumberModalOpen, setIsDeregisterNumberModalOpen] =
-    useState(false);
-
-  const fetchGiveaways = async () => {
+  const fetchGiveaway = async () => {
     try {
-      const res = await getAllGiveaway();
-      setGiveaways(res);
+      const res = await getGiveaway(id as string);
+      setGiveaway(res);
     } catch (e) {
       //
-      console.log(e);
     }
   };
 
   useEffect(() => {
+    if (giveaway == null) {
+      fetchGiveaway();
+    }
+  });
+
+  useEffect(() => {
     if (initialised) {
       setComponentInitialized(true);
-    }
-
-    if (giveaways == null) {
-      fetchGiveaways();
     }
   }, [initialised]);
 
@@ -199,85 +197,100 @@ export default function Home() {
     console.log("dek registered");
   }
 
-  async function registerNumber(number: string) {
+  const [days, hours, minutes, seconds] = useCountdownTimer(
+    giveaway != null ? parseInt(giveaway!.expiredAt) : new Date().getTime()
+  );
+
+  const joinGiveaway = async () => {
     try {
-      const verificationTime = Math.floor(new Date().getTime() / 1000);
-
-      const identifier = await getIdentifier(number);
-      console.log(identifier);
-
-      // TODO: lookup list of issuers per phone number.
-      // This could be a good example to have for potential issuers to learn about this feature.
-
-      const { accounts } =
-        await federatedAttestationsContract.lookupAttestations(identifier, [
-          issuer.address,
-        ]);
-      console.log(accounts);
-
-      if (accounts.length == 0) {
-        const attestationReceipt = await federatedAttestationsContract
-          .registerAttestationAsIssuer(
-            identifier,
-            address as string,
-            verificationTime
-          )
-          .sendAndWaitForReceipt();
-        console.log("attestation Receipt status:", attestationReceipt.status);
-        console.log(
-          `Register Attestation as issuer TX hash: ${network.explorer}/tx/${attestationReceipt.transactionHash}/internal-transactions`
-        );
-      } else {
-        console.log("phone number already registered with this issuer");
-      }
-    } catch (error) {
-      throw `Error registering phone number: ${error}`;
+    } catch (e) {
+      //
     }
-  }
-
-  async function sendToNumber(number: string, amount: string) {
-    try {
-      const identifier = await getIdentifier(number);
-      const amountInWei = issuerKit.web3.utils.toWei(amount, "ether");
-
-      const attestations =
-        await federatedAttestationsContract.lookupAttestations(identifier, [
-          issuer.address,
-        ]);
-
-      // TODO: handle when no accounts mapped to number
-
-      const CELO = await kit.contracts.getGoldToken();
-      await CELO.transfer(
-        attestations.accounts[0],
-        amountInWei
-      ).sendAndWaitForReceipt({ gasPrice: 20000000000 });
-    } catch (error) {
-      throw `Failed to send funds to ${number}: ${error}`;
-    }
-  }
+  };
 
   return (
-    <div className="flex flex-1 overflow-y-auto">
-      <div className="flex flex-col space-y-2 mt-10">
-        {giveaways != null && giveaways.length > 0 ? (
-          giveaways.map((data, index: number) => (
-            <GiveawayCard key={index} data={data} />
-          ))
-        ) : (
-          <div className="flex flex-col items-center justify-center">
-            No giveaways found
-            <button
-              onClick={() => {
-                router.push("/manage");
-              }}
-              className="inline-flex content-center place-items-center rounded-full border border-wood bg-forest py-2 px-5 text-md font-medium text-snow hover:bg-black"
-            >
-              Start one
-            </button>
+    <div className="flex flex-col mt-5">
+      {giveaway != null ? (
+        <div>
+          <h1 className="text-2xl font-black">{giveaway.title}</h1>
+          <div className="flex flex-row mt-2 space-x-3">
+            <div className="flex items-center space-x-2">
+              <img
+                src="/favicon.ico"
+                width={25}
+                height={25}
+                className="rounded-full"
+              />
+              <span>{giveaway.totalAmount}</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Jazzicon
+                diameter={25}
+                seed={jsNumberForAddress(giveaway.creator)}
+              />
+              <span>
+                {giveaway.creator.slice(0, 6)}...
+                {giveaway.creator.slice(-4)}{" "}
+              </span>
+            </div>
           </div>
-        )}
-      </div>
+          <div className="my-5 text-sm">
+            <p>{giveaway.description}</p>
+          </div>
+          <div>
+            <div className="mt-10 flex items-start justify-start flex-col w-full">
+              <p className="md:text-md lg:text-lg font-black">Ends at:</p>
+              {minutes > 0 ? (
+                <div className="flex flex-col w-full">
+                  <div className="flex w-full justify-between mt-6 py-0 px-6 font-black">
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="md:text-2xl lg:text-3xl">{days}</span>
+                      <i className="mt-2 not-italic text-xs">Days</i>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="md:text-2xl lg:text-3xl">{hours}</span>
+                      <i className="mt-2 not-italic text-xs">Hours</i>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="md:text-2xl lg:text-3xl">{minutes}</span>
+                      <i className="mt-2 not-italic text-xs">Minutes</i>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="md:text-2xl lg:text-3xl">{seconds}</span>
+                      <i className="mt-2 not-italic text-xs">Seconds</i>
+                    </div>
+                  </div>
+                  <button className="mt-7 inline-flex content-center place-items-center items-center justify-center rounded-full border border-wood bg-forest py-2 px-5 text-md font-medium text-snow hover:bg-black disabled:cursor-not-allowed">
+                    Join Giveaway
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full flex items-center justify-center">
+                  <h1 className="text-center text-2xl font-black">
+                    Giveaway Ended
+                  </h1>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="text-sm mt-10">List of joined users</div>
+          {giveaway.joinedUsers.length > 0 ? (
+            giveaway.joinedUsers.map((data) => (
+              <div>
+                <Jazzicon diameter={25} seed={jsNumberForAddress(data)} />
+                <span>
+                  {data.slice(0, 6)}...
+                  {data.slice(-4)}{" "}
+                </span>
+              </div>
+            ))
+          ) : (
+            <h4 className="text-xs mt-4">Be the first to join</h4>
+          )}
+        </div>
+      ) : (
+        <div></div>
+      )}
     </div>
   );
 }

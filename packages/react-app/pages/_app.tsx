@@ -3,7 +3,7 @@ import type { AppProps } from "next/app";
 import { CeloProvider, Alfajores } from "@celo/react-celo";
 import "@celo/react-celo/lib/styles.css";
 import "@fontsource/jetbrains-mono";
-
+import { Toaster } from "react-hot-toast";
 import Layout from "../components/Layout";
 
 function App({ Component, pageProps }: AppProps) {
@@ -22,6 +22,7 @@ function App({ Component, pageProps }: AppProps) {
     >
       <Layout>
         <Component {...pageProps} />
+        <Toaster />
       </Layout>
     </CeloProvider>
   );
